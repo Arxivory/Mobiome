@@ -3,14 +3,14 @@ import glob
 import numpy as np
 from parser import H36MKeypointLoader
 from src.utils.derivatives import compute_kinematic_derivatives
-from src.physics.opensim_bridge import InverseDynamicsSolver
+from src.physics.opensim_bridge import BiomechanicalInverseDynamics
 
 def process_h36m_subjects(raw_dir: str, output_dir: str, synthetic_dir: str):
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(synthetic_dir, exist_ok=True)
 
     loader = H36MKeypointLoader()
-    solver = InverseDynamicsSolver()
+    solver = BiomechanicalInverseDynamics()
     subjects = ['S1', 'S5', 'S9', 'S11']
 
     print("Processing Human3.6m Kinematics & Ground Truth")
