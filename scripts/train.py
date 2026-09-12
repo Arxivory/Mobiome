@@ -62,7 +62,7 @@ def train_phase3():
     print(f"--- Phase 3: Training DeepONet Operator ({len(dataset)} samples) ---")
     
     model.train()
-    for epoch in range(1, 6):
+    for epoch in range(1, 101):
         epoch_loss = 0.0
         for u_batch, tau_gt in loader:
             optimizer.zero_grad()
@@ -72,7 +72,7 @@ def train_phase3():
             optimizer.step()
             epoch_loss += loss.item()
 
-        print(f"Epoch {epoch}/5 | MSE Operator Loss: {epoch_loss / len(loader):.6f}")
+        print(f"Epoch {epoch}/100 | MSE Operator Loss: {epoch_loss / len(loader):.6f}")
 
     # Save trained PyTorch operator for Phase 4 export
     os.makedirs("checkpoints", exist_ok=True)
