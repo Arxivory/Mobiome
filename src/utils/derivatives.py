@@ -2,17 +2,18 @@ import numpy as np
 
 def compute_kinematic_derivatives(q: np.ndarray, fps: float = 60.0):
     """
-    Computes position (q), velocity (q_dot), acceleration (q_ddot),
+    Computes generalized position (q), velocity (q_dot), acceleration (q_ddot),
     and jerk (q_dddot) using central finite differences.
 
-    q shape: (T, K, 3) where T is frames, K is joints
+    Supports:
+      - Cartesian Poses: (T, K, 3)
+      - Generalized Joint Angles: (T, D)
     """
-    if q.ndim != 3 or q.shape[1] <= 0 or q.shape[2] != 3 or q.shape[0] < 3:
-        raise ValueError("q must have shape (T, K, 3) with T >= 3")
-    
-    dt = 1.0 / fps
-    T, K, C = q.shape
+    if q.ndim not in [2, 3] or q.shape[0] < 3:
+        raise ValueError("q must have shape (T, D) or (T, K, 3) with T >= 3")
 
+    dt = 1.0 / fps
+    
     # 1st derivative: Velocity (q_dot)
     q_dot = np.zeros_like(q)
     q_dot[1:-1] = (q[2:] - q[:-2]) / (2 * dt)
