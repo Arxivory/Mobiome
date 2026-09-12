@@ -59,6 +59,16 @@ class H36MKeypointLoader:
             elif data.shape[1] in [17, 32]:
                 data = np.transpose(data, (2, 1, 0))  # (T, K, 3)
 
+        if data.ndim == 3:
+            if data.shape[-1] == 3:
+                pass  # Already (T, K, 3)
+            elif data.shape[0] == 3:
+                data = np.transpose(data, (2, 1, 0))
+            elif data.shape[1] == 3:
+                data = np.transpose(data, (0, 2, 1))
+            else:
+                raise ValueError(f"Unsupported 3D shape: {data.shape}")
+
         # Slice to standard 17-joint representation if raw keypoints use full 32 skeleton nodes
         if data.shape[1] == 32:
             h36m_17_indices = [0, 1, 2, 3, 6, 7, 8, 12, 13, 14, 15, 17, 18, 19, 25, 26, 27]
