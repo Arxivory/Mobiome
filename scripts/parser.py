@@ -14,6 +14,16 @@ class H36MKeypointLoader:
         """
         self.target_joints = target_joints
 
+    def find_dataset(self, group):
+        for name, item in group.items():
+            if isinstance(item, h5py.Dataset):
+                return np.array(item)
+            if isinstance(item, h5py.Group):
+                result = self.find_dataset(item)
+                if result is not None:
+                    return result
+        return None
+
     def load_from_h5(self, h5_file_path: str) -> np.ndarray:
         """Parses HDF5 .h5 / .h5py annotations."""
         with h5py.File(h5_file_path, 'r') as f:
@@ -22,8 +32,7 @@ class H36MKeypointLoader:
             elif '3d_positions' in f:
                 keypoints = np.array(f['3d_positions'])
             else:
-                first_key = list(f.keys())[0]
-                keypoints = np.array(f[first_key])
+                keypoints = self.find_dataset(f)
 
         return self._format_tensor(keypoints)
 

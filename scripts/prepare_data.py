@@ -23,19 +23,18 @@ def process_h36m_subjects(raw_dir: str, output_dir: str, synthetic_dir: str):
 
         file_candidate = glob.glob(os.path.join(sub_path, "**/*.h5"), recursive=True)
 
-        if not file_candidate:
-            print(f"Skipping {sub} (no .h5 files found)")
-            continue
+        for file_path in file_candidate:
+            sample_q = loader.load_from_h5(file_path)
+            q, q_dot, q_ddot, q_dddot = compute_kinematic_derivatives(
+                sample_q, fps=60.0
+            )
+            tau_ground_truth = solver.solve_rnea(q, q_dot, q_ddot)
 
-        sample_q = loader.load_from_h5(file_candidate[0])
-
-        q, q_dot, q_ddot, q_dddot = compute_kinematic_derivatives(sample_q, fps=60.0)
-
-        tau_ground_truth = solver.solve_rnea(q, q_dot, q_ddot)
-
-        np.save(os.path.join(output_dir, f"{sub}_kinematics.npy"), {
-            'q': q, 'q_dot': q_dot, 'q_ddot': q_ddot, 'q_dddot': q_dddot
-        })
+            activity_name = os.path.splitext(os.path.basename(file_path))[0]
+            np.save(
+                os.path.join(output_dir, f"{sub}_{activity_name}_kinematics.npy"),
+                {"q": q, "q_dot": q_dot, "q_ddot": q_ddot, "q_dddot": q_dddot},
+            )
         np.save(os.path.join(synthetic_dir, f"{sub}_torques.npy"), tau_ground_truth)
 
         print(f"Processed {sub}: Saved kinematics shape {q.shape} & torques shape {tau_ground_truth.shape}")
