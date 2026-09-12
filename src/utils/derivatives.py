@@ -3,7 +3,7 @@ import numpy as np
 def compute_kinematic_derivatives(q: np.ndarray, fps: float = 60.0):
     """
     Computes position (q), velocity (q_dot), acceleration (q_ddot),
-    and jerk (q_ddot) using central finite differences.
+    and jerk (q_dddot) using central finite differences.
 
     q shape: (T, K, 3) where T is frames, K is joints
     """
