@@ -28,7 +28,7 @@ def process_h36m_subjects(raw_dir: str, output_dir: str, synthetic_dir: str):
             continue
 
         sample_q = loader.load_from_h5(file_candidate[0])
-        
+
         q, q_dot, q_ddot, q_dddot = compute_kinematic_derivatives(sample_q, fps=60.0)
 
         tau_ground_truth = solver.solve_rnea(q, q_dot, q_ddot)
@@ -41,4 +41,4 @@ def process_h36m_subjects(raw_dir: str, output_dir: str, synthetic_dir: str):
         print(f"Processed {sub}: Saved kinematics shape {q.shape} & torques shape {tau_ground_truth.shape}")
 
 if __name__ == "__main__":
-    process_h36m_subjects("data/raw/h36m", "data/processed", "data/synthetic")
+    process_h36m_subjects("data/raw", "data/processed", "data/synthetic")
