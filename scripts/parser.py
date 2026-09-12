@@ -55,8 +55,12 @@ class H36MKeypointLoader:
         """
         data = np.squeeze(np.array(raw_data))
 
+        # Handle flattened coordinates stored as (96, T) or (51, T)
+        if data.ndim == 2 and data.shape[0] in (96, 51):
+            data = data.T
+
         # Case 1: (T, 96) continuous flattened coordinates (32 joints * 3)
-        if data.ndim == 2 and data.shape[1] in [96, 51]:
+        if data.ndim == 2 and data.shape[1] in (96, 51):
             T = data.shape[0]
             K = data.shape[1] // 3
             data = data.reshape(T, K, 3)

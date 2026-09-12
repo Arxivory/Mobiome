@@ -1,7 +1,7 @@
 import os
 import glob
 import numpy as np
-from parser import H36MKeypointLoader
+from scripts.parser import H36MKeypointLoader
 from src.utils.derivatives import compute_kinematic_derivatives
 from src.physics.opensim_bridge import BiomechanicalInverseDynamics
 
@@ -21,11 +21,20 @@ def process_h36m_subjects(raw_dir: str, output_dir: str, synthetic_dir: str):
             print(f"Skipping {sub} (directory not found at {sub_path})")
             continue
 
-        file_candidates = glob.glob(os.path.join(sub_path, "**/*.h5"), recursive=True)
+        file_candidates = glob.glob(
+            os.path.join(sub_path, "MyPoses", "3D_positions", "*.h5")
+        )
+        if not file_candidates:
+            print(f"Skipping {sub} (no .h5 files found)")
+            continue
 
         for file_path in file_candidates:
             # 1. Load Cartesian 3D Keypoints (T, 17, 3)
-            p_3d = loader.load_from_h5(file_path)
+            try:
+                p_3d = loader.load_from_h5(file_path)
+            except ValueError as error:
+                print(f"Skipping {file_path}: {error}")
+                continue
 
             # 2. Convert 3D Cartesian coordinates to Generalized Angles q (T, D)
             q = dynamics_bridge.cartesian_to_generalized_coordinates(p_3d)
