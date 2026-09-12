@@ -30,4 +30,6 @@ def process_h36m_subjects(raw_dir: str, output_dir: str, synthetic_dir: str):
         np.save(os.path.join(synthetic_dir, f"{sub}_torques.npy"), tau_ground_truth)
 
         print(f"Processed {sub}: Saved kinematics shape {q.shape} & torques shape {tau_ground_truth.shape}")
-        
+
+if __name__ == "__main__":
+    process_h36m_subjects("data/raw/h36m", "data/processed", "data/synthetic")
