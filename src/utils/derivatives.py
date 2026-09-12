@@ -7,7 +7,7 @@ def compute_kinematic_derivatives(q: np.ndarray, fps: float = 60.0):
 
     q shape: (T, K, 3) where T is frames, K is joints
     """
-    if q.ndim != 3 or q.shape[0] < 3:
+    if q.ndim != 3 or q.shape[1] <= 0 or q.shape[2] != 3 or q.shape[0] < 3:
         raise ValueError("q must have shape (T, K, 3) with T >= 3")
     
     dt = 1.0 / fps
