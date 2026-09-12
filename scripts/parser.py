@@ -14,6 +14,19 @@ class H36MKeypointLoader:
         """
         self.target_joints = target_joints
 
+    def load_from_h5(self, h5_file_path: str) -> np.ndarray:
+        """Parses HDF5 .h5 / .h5py annotations."""
+        with h5py.File(h5_file_path, 'r') as f:
+            if 'pose' in f:
+                keypoints = np.array(f['pose'])
+            elif '3d_positions' in f:
+                keypoints = np.array(f['3d_positions'])
+            else:
+                first_key = list(f.keys())[0]
+                keypoints = np.array(f[first_key])
+
+        return self._format_tensor(keypoints)
+
     def load_from_npz(self, npz_file_path: str) -> np.ndarray:
         """Parses preprocessed NumPy .npz archives."""
         data = np.load(npz_file_path, allow_pickle=True)
