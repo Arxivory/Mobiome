@@ -68,4 +68,9 @@ class H36MKeypointLoader:
         if np.max(np.abs(data)) > 100.0:
             data = data / 1000.0
 
+        if data.ndim != 3 or data.shape[1:] != (17, 3):
+            raise ValueError(
+                f"Expected data shape (T, 17, 3), received {data.shape}"
+            )
+
         return data.astype(np.float32)
