@@ -5,5 +5,5 @@ numpy
 scipy
 h5py
 opensim
-cv2
+opencv-python
 mediapipe
