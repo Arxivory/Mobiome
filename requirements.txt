@@ -7,3 +7,4 @@ h5py
 opensim
 opencv-python
 mediapipe
+pyvista
