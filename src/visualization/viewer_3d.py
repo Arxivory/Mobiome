@@ -56,13 +56,7 @@ class Biomechanical3DViewer:
             node_heatmaps[j_idx] = abs(self.tau[0, idx])
 
         self.joint_cloud["Torque_Heatmap"] = node_heatmaps
-        glyphs = self.joint_cloud.glyph(scale=False, geom=pv.Sphere(radius=0.016))
-        self.joint_spheres = self.plotter.add_mesh(
-            glyphs, 
-            cmap="jet", 
-            clim=[0, 80], 
-            scalar_bar_args={"title": "Joint Torque Magnitude (N·m)"}
-        )
+        self._update_joint_spheres()
 
         # 2. Render Bone Connections
         for parent, child in self.skeleton_bones:
@@ -119,6 +113,18 @@ class Biomechanical3DViewer:
             
         self.vector_glyph_actor = self.plotter.add_mesh(arrows, color="#f72585", opacity=0.85)
 
+    def _update_joint_spheres(self):
+        """Rebuild the glyph mesh after joint positions or heatmaps change."""
+        glyphs = self.joint_cloud.glyph(scale=False, geom=pv.Sphere(radius=0.016))
+        if self.joint_spheres is not None:
+            self.plotter.remove_actor(self.joint_spheres)
+        self.joint_spheres = self.plotter.add_mesh(
+            glyphs,
+            cmap="jet",
+            clim=[0, 80],
+            scalar_bar_args={"title": "Joint Torque Magnitude (N·m)"}
+        )
+
     def on_frame_change(self, value):
         """Callback triggered on time-slider movement for real-time analysis."""
         frame_idx = int(value)
@@ -131,6 +137,7 @@ class Biomechanical3DViewer:
         for idx, j_idx in enumerate(self.monitored_joints):
             node_heatmaps[j_idx] = abs(self.tau[frame_idx, idx])
         self.joint_cloud["Torque_Heatmap"] = node_heatmaps
+        self._update_joint_spheres()
 
         # Update Bone Lines
         for parent, child, actor in self.bone_lines:

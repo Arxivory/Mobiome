@@ -1,23 +1,23 @@
 import cv2
 import torch
 import numpy as np
-import os
 import mediapipe as mp
 from scipy.signal import savgol_filter
-from src.vision.backbone import PoseTrajectoryEncoder
 from src.operators.deeponet import DeepONetOperator
 from src.physics.opensim_bridge import BiomechanicalInverseDynamics
 from src.utils.derivatives import compute_kinematic_derivatives
 from src.visualization.viewer_3d import Biomechanical3DViewer
 from src.analytics.metrics import compute_biomechanical_metrics
 
-def map_mediapipe_to_h36m(landmarks, img_w, img_h) -> np.ndarray:
+def map_mediapipe_world_to_h36m(landmarks) -> np.ndarray:
     """
-    Explicitly re-maps MediaPipe landmarks (33 pts) to standard 17-joint Human3.6M topology.
-    Converts pixel coordinates to normalized metric-scale centered at the Pelvis.
+    Re-map MediaPipe world landmarks to the 17-joint Human3.6M topology.
+
+    MediaPipe world landmarks are already 3D coordinates in meters. Keep that
+    metric scale and center the pose at the pelvis so the physics and viewer
+    receive a coherent body-centered skeleton.
     """
-    # Extract raw 2D pixel coordinates (x * w, y * h)
-    lm = np.array([[l.x * img_w, l.y * img_h] for l in landmarks])
+    lm = np.array([[l.x, l.y, l.z] for l in landmarks], dtype=np.float32)
 
     # MediaPipe Indices:
     # 0: Nose, 11: L_Shoulder, 12: R_Shoulder, 13: L_Elbow, 14: R_Elbow,
@@ -27,7 +27,7 @@ def map_mediapipe_to_h36m(landmarks, img_w, img_h) -> np.ndarray:
     neck = (lm[11] + lm[12]) / 2.0
     spine = (pelvis + neck) / 2.0
     head = lm[0]
-    site = head + (head - neck) * 0.5  # Head top extension
+    site = head + (head - neck) * 0.5
 
     # Reconstruct exact 17-joint Human3.6M array order
     h36m_kpts = np.array([
@@ -50,23 +50,10 @@ def map_mediapipe_to_h36m(landmarks, img_w, img_h) -> np.ndarray:
         lm[16]      # 16: R_Wrist
     ])
 
-    # Root-center at Pelvis
-    h36m_centered = h36m_kpts - pelvis
-
-    # Scale normalize using torso length (pelvis to neck)
-    torso_len = np.linalg.norm(neck - pelvis) + 1e-6
-    h36m_normalized = h36m_centered / torso_len
-
-    return h36m_normalized.flatten()
+    return h36m_kpts - pelvis
 
 def analyze_video_and_benchmark(video_path: str = "sample_input.mp4"):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # Load Models
-    vision_model = PoseTrajectoryEncoder(num_joints=17).to(device)
-    if os.path.exists("checkpoints/vision_fp32.pth"):
-        vision_model.load_state_dict(torch.load("checkpoints/vision_fp32.pth", map_location=device))
-    vision_model.eval()
 
     operator_model = DeepONetOperator(sensor_count=720, num_outputs=4).to(device)
     operator_model.load_state_dict(torch.load("checkpoints/deeponet_fp32.pth", map_location=device))
@@ -86,32 +73,28 @@ def analyze_video_and_benchmark(video_path: str = "sample_input.mp4"):
     w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     
-    keypoints_2d_list = []
+    keypoints_3d_list = []
 
-    print(f"--- Correcting H36M Keypoint Mapping for {video_path} ---")
+    print(f"--- Extracting MediaPipe world landmarks for {video_path} ---")
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         res = pose.process(rgb)
-        if res.pose_landmarks:
-            kpts_h36m = map_mediapipe_to_h36m(res.pose_landmarks.landmark, w, h)
-            keypoints_2d_list.append(kpts_h36m)
+        if res.pose_world_landmarks:
+            kpts_h36m = map_mediapipe_world_to_h36m(res.pose_world_landmarks.landmark)
+            keypoints_3d_list.append(kpts_h36m)
 
     cap.release()
 
-    if len(keypoints_2d_list) < 60:
+    if len(keypoints_3d_list) < 60:
         raise ValueError("Video must contain at least 60 valid pose frames.")
 
-    seq_2d = torch.tensor(np.array(keypoints_2d_list[:60]), dtype=torch.float32).unsqueeze(0).to(device)
-
-    # Predict 3D Positions
-    with torch.no_grad():
-        p_3d = vision_model(seq_2d).cpu().numpy().squeeze(0) # (60, 17, 3)
-
-    # Align Vertical Camera Coordinate Axis (Y down -> Y up)
-    p_3d[:, :, 1] = -p_3d[:, :, 1]
+    p_3d = np.asarray(keypoints_3d_list[:60], dtype=np.float32)
+    if p_3d.shape != (60, 17, 3) or not np.isfinite(p_3d).all():
+        raise ValueError(f"Unexpected world-landmark shape or values: {p_3d.shape}")
+    p_3d = savgol_filter(p_3d, window_length=7, polyorder=2, axis=0)
 
     # Dynamics & Kinematics
     q = dynamics_bridge.cartesian_to_generalized_coordinates(p_3d)
