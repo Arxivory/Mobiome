@@ -82,6 +82,12 @@ class Biomechanical3DViewer:
             fmt="%0.0f"
         )
 
+        self.plotter.camera_position = [
+            (0.0, 0.5, -2.5),  # (x, y, z) coordinates for the camera position +Z
+            (0.0, 0.0, 0.0),  # (x, y, z) look-at target (pelvis center)
+            (0.0, -1.0, 0.0),  # Up direction vector (-Y is up)
+        ]
+
         # Add Coordinate Grid Axes
         self.plotter.show_bounds(grid='front', location='outer', all_edges=True)
         self.plotter.add_camera_orientation_widget()
