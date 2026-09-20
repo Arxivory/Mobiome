@@ -128,7 +128,16 @@ class Biomechanical3DViewer:
             glyphs,
             cmap="jet",
             clim=[0, 80],
-            scalar_bar_args={"title": "Joint Torque Magnitude (N·m)"}
+            scalar_bar_args={
+                "title": "Joint Torque Magnitude (N·m)",
+                "vertical": False,
+                "position_x": 0.55,
+                "position_y": 0.05,
+                "width": 0.38,
+                "height": 0.08,
+                "title_font_size": 12,
+                "label_font_size": 10
+            }
         )
 
     def on_frame_change(self, value):
