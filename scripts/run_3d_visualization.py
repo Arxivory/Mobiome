@@ -17,7 +17,7 @@ def map_mediapipe_world_to_h36m(landmarks) -> np.ndarray:
     metric scale and center the pose at the pelvis so the physics and viewer
     receive a coherent body-centered skeleton.
     """
-    lm = np.array([[l.x, l.y, l.z] for l in landmarks], dtype=np.float32)
+    lm = np.array([[l.x, -l.y, l.z] for l in landmarks], dtype=np.float32)
 
     # MediaPipe Indices:
     # 0: Nose, 11: L_Shoulder, 12: R_Shoulder, 13: L_Elbow, 14: R_Elbow,
