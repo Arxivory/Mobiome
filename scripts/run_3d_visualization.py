@@ -17,7 +17,7 @@ def map_mediapipe_world_to_h36m(landmarks) -> np.ndarray:
     metric scale and center the pose at the pelvis so the physics and viewer
     receive a coherent body-centered skeleton.
     """
-    lm = np.array([[l.x, -l.y, l.z] for l in landmarks], dtype=np.float32)
+    lm = np.array([[-l.x, -l.y, l.z] for l in landmarks], dtype=np.float32)
 
     # MediaPipe Indices:
     # 0: Nose, 11: L_Shoulder, 12: R_Shoulder, 13: L_Elbow, 14: R_Elbow,
@@ -90,6 +90,26 @@ def analyze_video_and_benchmark(video_path: str = "sample_input.mp4"):
 
     if len(keypoints_3d_list) < 60:
         raise ValueError("Video must contain at least 60 valid pose frames.")
+
+    # Inspect frame 0 keypoints
+    p0 = keypoints_3d_list[0]
+
+    print("=== COORDINATE SPACE SANITY CHECK ===")
+    print(f"Pelvis (Root Joint 0): {p0[0]}")  # Should be exactly [0.0, 0.0, 0.0]
+    print(f"Head Top (Joint 10)  : {p0[10]}") # Should have positive Y (e.g., +0.75m to +0.90m)
+    print(f"R-Ankle  (Joint 3)   : {p0[3]}")  # Should have negative Y (e.g., -0.80m to -0.95m)
+    print(f"L-Ankle  (Joint 6)   : {p0[6]}")  # Should have negative Y (e.g., -0.80m to -0.95m)
+    print(f"R-Shoulder (Joint 14): {p0[14]}") # Should have positive X (right side)
+    print(f"L-Shoulder (Joint 11): {p0[11]}") # Should have negative X (left side)
+    print("=====================================")
+
+    r_thigh = np.linalg.norm(p0[1] - p0[2])  # R_Hip -> R_Knee
+    r_shank = np.linalg.norm(p0[2] - p0[3])  # R_Knee -> R_Ankle
+    r_arm   = np.linalg.norm(p0[14] - p0[15]) # R_Shoulder -> R_Elbow
+
+    print(f"Right Thigh Length: {r_thigh:.3f} meters") # Expect ~0.40 - 0.48 m
+    print(f"Right Shank Length: {r_shank:.3f} meters") # Expect ~0.38 - 0.45 m
+    print(f"Right Arm Length  : {r_arm:.3f} meters")   # Expect ~0.25 - 0.33 m
 
     p_3d = np.asarray(keypoints_3d_list[:60], dtype=np.float32)
     if p_3d.shape != (60, 17, 3) or not np.isfinite(p_3d).all():
