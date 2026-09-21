@@ -8,3 +8,6 @@ opensim
 opencv-python
 mediapipe
 pyvista
+onnx
+onnxscript
+protobuf>=4.25.3,<5
