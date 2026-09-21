@@ -2,6 +2,7 @@ import os
 import sys
 from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.ao.quantization as quantization
@@ -81,6 +82,36 @@ def build_data_loader(
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
     return loader
+
+
+class ONNXCalibrationDataReader:
+    """Feeds normalized project samples to ONNX Runtime static quantization."""
+
+    def __init__(self, loader: DataLoader, seq_len: int, max_batches: int = 32):
+        self.loader_iter = iter(loader)
+        self.y_query = make_y_query(seq_len).cpu().numpy().astype(np.float32)
+        self.max_batches = max_batches
+        self.batch_count = 0
+
+    def get_next(self):
+        if self.batch_count >= self.max_batches:
+            return None
+
+        try:
+            batch = next(self.loader_iter)
+        except StopIteration:
+            return None
+
+        u_batch = batch[0] if isinstance(batch, (list, tuple)) else batch
+        if u_batch.ndim == 1:
+            u_batch = u_batch.unsqueeze(0)
+        u_batch = u_batch[:1]
+
+        self.batch_count += 1
+        return {
+            "trajectory_sensors_u": u_batch.numpy().astype(np.float32),
+            "query_locations_y": self.y_query,
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -227,6 +258,49 @@ def export_to_onnx(
     print(f"[+] Successfully exported ONNX artifact to {output_path}")
     return True
 
+def quantize_onnx_int8(
+    input_path: str = "checkpoints/deeponet_fp32.onnx",
+    output_path: str = "checkpoints/deeponet_int8.onnx",
+    calib_loader: DataLoader | None = None,
+    seq_len: int = 60,
+    max_calibration_batches: int = 32,
+) -> bool:
+    """Create a statically calibrated INT8 ONNX model with ONNX Runtime."""
+    try:
+        from onnxruntime.quantization import (
+            CalibrationMethod,
+            QuantFormat,
+            QuantType,
+            quantize_static,
+        )
+    except ModuleNotFoundError:
+        print("[!] ONNX INT8 quantization skipped: install 'onnxruntime'.")
+        return False
+
+    if calib_loader is None:
+        raise ValueError("calib_loader is required for static ONNX INT8 quantization.")
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    calibration_reader = ONNXCalibrationDataReader(
+        calib_loader,
+        seq_len=seq_len,
+        max_batches=max_calibration_batches,
+    )
+
+    print(f"[*] Quantizing ONNX model to INT8: {output_path}")
+    quantize_static(
+        model_input=input_path,
+        model_output=output_path,
+        calibration_data_reader=calibration_reader,
+        quant_format=QuantFormat.QDQ,
+        activation_type=QuantType.QUInt8,
+        weight_type=QuantType.QInt8,
+        per_channel=True,
+        calibrate_method=CalibrationMethod.MinMax,
+    )
+    print(f"[+] INT8 ONNX artifact written to {output_path}")
+    return True
+
 
 # ---------------------------------------------------------------------------
 # Main Execution Strategy
@@ -266,5 +340,14 @@ if __name__ == "__main__":
     # 4. Execute QAT Strategy
     qat_model = run_quantization_aware_training(base_model, data_loader, epochs=3, lr=1e-4, seq_len=SEQ_LEN)
 
-    # 5. Export Baseline Graph Artifact
-    export_to_onnx(base_model, output_path="checkpoints/deeponet_fp32.onnx", sensor_dim=SENSOR_DIM, seq_len=SEQ_LEN)
+    # 5. Export the FP32 graph used as the ONNX quantization source.
+    fp32_onnx_path = "checkpoints/deeponet_fp32.onnx"
+    export_to_onnx(base_model, output_path=fp32_onnx_path, sensor_dim=SENSOR_DIM, seq_len=SEQ_LEN)
+
+    # 6. Quantize the exported ONNX graph using real normalized samples.
+    quantize_onnx_int8(
+        input_path=fp32_onnx_path,
+        output_path="checkpoints/deeponet_int8.onnx",
+        calib_loader=data_loader,
+        seq_len=SEQ_LEN,
+    )

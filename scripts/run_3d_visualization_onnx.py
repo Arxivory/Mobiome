@@ -52,7 +52,7 @@ def map_mediapipe_world_to_h36m(landmarks) -> np.ndarray:
     return h36m_kpts - pelvis
 
 
-def analyze_video_and_benchmark_onnx(video_path: str = "sample_input.mp4", onnx_path: str = "checkpoints/deeponet_fp32.onnx"):
+def analyze_video_and_benchmark_onnx(video_path: str = "sample_input.mp4", onnx_path: str = "checkpoints/deeponet_int8.onnx"):
     """Run the same 3D visualization pipeline using the exported ONNX DeepONet model."""
     providers = ["CPUExecutionProvider"]
     session = ort.InferenceSession(onnx_path, providers=providers)
@@ -137,4 +137,4 @@ def analyze_video_and_benchmark_onnx(video_path: str = "sample_input.mp4", onnx_
 
 
 if __name__ == "__main__":
-    analyze_video_and_benchmark_onnx("sample_input.mp4", "checkpoints/deeponet_fp32.onnx")
+    analyze_video_and_benchmark_onnx("sample_input.mp4", "checkpoints/deeponet_int8.onnx")
