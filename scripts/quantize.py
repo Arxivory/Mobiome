@@ -21,7 +21,7 @@ except ImportError:
 
 
 # ---------------------------------------------------------------------------
-# 1. Quantized Model Wrapper (QAT & PTQ Support)
+# 1. Quantized Model Wrapper (PyTorch QAT/PTQ Support)
 # ---------------------------------------------------------------------------
 class QuantizableDeepONet(nn.Module):
     """
@@ -63,7 +63,7 @@ def make_y_query(seq_len: int, device: torch.device | None = None) -> torch.Tens
 
 
 # ---------------------------------------------------------------------------
-# 2. Calibration & Dataset Helper
+# 2. Calibration & Dataset Helpers
 # ---------------------------------------------------------------------------
 def build_data_loader(
     kinematics_dir: str = "data/processed",
@@ -80,18 +80,34 @@ def build_data_loader(
         seq_len=seq_len
     )
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
     return loader
 
 
 class ONNXCalibrationDataReader:
     """Feeds normalized project samples to ONNX Runtime static quantization."""
 
-    def __init__(self, loader: DataLoader, seq_len: int, max_batches: int = 32):
+    def __init__(
+        self,
+        loader: DataLoader,
+        seq_len: int,
+        norm_stats_path: str = "checkpoints/norm_stats.pt",
+        max_batches: int = 32
+    ):
         self.loader_iter = iter(loader)
         self.y_query = make_y_query(seq_len).cpu().numpy().astype(np.float32)
         self.max_batches = max_batches
         self.batch_count = 0
+
+        # Load normalization stats if present to match run_3d_visualization_onnx.py inference
+        if os.path.exists(norm_stats_path):
+            stats = torch.load(norm_stats_path, map_location="cpu")
+            self.u_mean = stats["mean"]
+            self.u_std = stats["std"]
+            print(f"[*] Calibration Reader loaded normalization stats from {norm_stats_path}")
+        else:
+            self.u_mean = None
+            self.u_std = None
+            print("[!] Warning: norm_stats.pt not found. Calibrating ONNX without input normalization.")
 
     def get_next(self):
         if self.batch_count >= self.max_batches:
@@ -103,9 +119,17 @@ class ONNXCalibrationDataReader:
             return None
 
         u_batch = batch[0] if isinstance(batch, (list, tuple)) else batch
+        
         if u_batch.ndim == 1:
             u_batch = u_batch.unsqueeze(0)
-        u_batch = u_batch[:1]
+
+        # Apply normalization if stats were loaded (BiomechanicsOperatorDataset in train.py outputs normalized tensor)
+        if self.u_mean is not None and self.u_std is not None:
+            # Check if dataset inputs are already normalized inside dataset class or require explicit normalization
+            if hasattr(self.loader_iter, 'dataset') and hasattr(self.loader_iter.dataset, 'mean'):
+                pass  # Already normalized inside BiomechanicsOperatorDataset.__init__
+            else:
+                u_batch = (u_batch - self.u_mean) / self.u_std
 
         self.batch_count += 1
         return {
@@ -217,30 +241,24 @@ def run_quantization_aware_training(
 
 
 # ---------------------------------------------------------------------------
-# 5. ONNX Export Engine
+# 5. ONNX Export & INT8 Quantization Engine
 # ---------------------------------------------------------------------------
 def export_to_onnx(
     model: nn.Module,
-    output_path: str = "checkpoints/quantized_deeponet.onnx",
+    output_path: str = "checkpoints/deeponet_fp32.onnx",
     sensor_dim: int = 720,
     seq_len: int = 60
-):
+) -> bool:
     """
-    Exports floating-point or fake-quantized state graphs to ONNX runtime representation.
+    Exports floating-point baseline graph to ONNX representation.
     """
-    try:
-        import onnxscript  # noqa: F401
-    except ModuleNotFoundError:
-        print("[!] ONNX export skipped: install 'onnxscript' and 'onnx' to export the graph.")
-        return False
-
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     model.eval()
 
     dummy_u = torch.randn(1, sensor_dim, dtype=torch.float32)
     dummy_y = make_y_query(seq_len)
 
-    print(f"[*] Exporting graph to ONNX: {output_path}")
+    print(f"[*] Exporting FP32 graph to ONNX: {output_path}")
     torch.onnx.export(
         model,
         (dummy_u, dummy_y),
@@ -257,6 +275,7 @@ def export_to_onnx(
     )
     print(f"[+] Successfully exported ONNX artifact to {output_path}")
     return True
+
 
 def quantize_onnx_int8(
     input_path: str = "checkpoints/deeponet_fp32.onnx",
@@ -284,6 +303,7 @@ def quantize_onnx_int8(
     calibration_reader = ONNXCalibrationDataReader(
         calib_loader,
         seq_len=seq_len,
+        norm_stats_path="checkpoints/norm_stats.pt",
         max_batches=max_calibration_batches,
     )
 
@@ -334,17 +354,11 @@ if __name__ == "__main__":
         seq_len=SEQ_LEN
     )
 
-    # 3. Execute PTQ Strategy
-    ptq_model = run_post_training_quantization(base_model, data_loader, seq_len=SEQ_LEN)
-
-    # 4. Execute QAT Strategy
-    qat_model = run_quantization_aware_training(base_model, data_loader, epochs=3, lr=1e-4, seq_len=SEQ_LEN)
-
-    # 5. Export the FP32 graph used as the ONNX quantization source.
+    # 3. Export FP32 Model to ONNX
     fp32_onnx_path = "checkpoints/deeponet_fp32.onnx"
     export_to_onnx(base_model, output_path=fp32_onnx_path, sensor_dim=SENSOR_DIM, seq_len=SEQ_LEN)
 
-    # 6. Quantize the exported ONNX graph using real normalized samples.
+    # 4. Quantize ONNX FP32 Model -> INT8 ONNX Model using ONNX Runtime Static Quantization
     quantize_onnx_int8(
         input_path=fp32_onnx_path,
         output_path="checkpoints/deeponet_int8.onnx",
