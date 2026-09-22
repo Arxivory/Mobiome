@@ -28,7 +28,7 @@ $$\hat{\mathbf{p}}_t = \mathbf{p}_t + \boldsymbol{\epsilon}_t,$$
 
 and finite differences amplify that noise as derivative order increases:
 
-$$\operatorname{Var}(\dot{\hat{\mathbf{p}}}) \propto \frac{\sigma^2}{\Delta t^2},\qquad\operatorname{Var}(\ddot{\hat{\mathbf{p}}}) \propto \frac{\sigma^2}{\Delta t^4},\qquad\operatorname{Var}(\dddot{\hat{\mathbf{p}}})\propto\frac{\sigma^2}{\Delta t^6}.$$
+$$\mathrm{Var}(\dot{\hat{\mathbf{p}}}) \propto \frac{\sigma^2}{\Delta t^2},\qquad\mathrm{Var}(\ddot{\hat{\mathbf{p}}}) \propto \frac{\sigma^2}{\Delta t^4},\qquad\mathrm{Var}(\dddot{\hat{\mathbf{p}}})\propto\frac{\sigma^2}{\Delta t^6}.$$
 
 The project addresses this instability before torque prediction by combining anatomical and temporal regularization with a learned operator.
 
