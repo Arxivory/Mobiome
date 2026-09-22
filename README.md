@@ -18,28 +18,17 @@ The repository also contains an OpenSim-facing inverse-dynamics bridge, data pre
 
 Let generalized joint position, velocity, and acceleration be $\mathbf{q}(t)$, $\dot{\mathbf{q}}(t)$, and $\ddot{\mathbf{q}}(t)$. Classical inverse dynamics models torque as
 
-$$
-\boldsymbol{\tau}
-= \mathbf{M}(\mathbf{q})\ddot{\mathbf{q}}
-+ \mathbf{C}(\mathbf{q},\dot{\mathbf{q}})\dot{\mathbf{q}}
-+ \mathbf{g}(\mathbf{q}),
-$$
+$$\boldsymbol{\tau}= \mathbf{M}(\mathbf{q})\ddot{\mathbf{q}}+ \mathbf{C}(\mathbf{q},\dot{\mathbf{q}})\dot{\mathbf{q}}+ \mathbf{g}(\mathbf{q}),$$
 
 where $\mathbf{M}$ is the mass and inertia matrix, $\mathbf{C}$ captures Coriolis and centripetal effects, and $\mathbf{g}$ is the gravitational load.
 
 Monocular reconstruction produces noisy positions,
 
-$$
-\hat{\mathbf{p}}_t = \mathbf{p}_t + \boldsymbol{\epsilon}_t,
-$$
+$$\hat{\mathbf{p}}_t = \mathbf{p}_t + \boldsymbol{\epsilon}_t,$$
 
 and finite differences amplify that noise as derivative order increases:
 
-$$
-\operatorname{Var}(\dot{\hat{\mathbf{p}}}) \propto \frac{\sigma^2}{\Delta t^2},\qquad
-\operatorname{Var}(\ddot{\hat{\mathbf{p}}}) \propto \frac{\sigma^2}{\Delta t^4},\qquad
-\operatorname{Var}(\dddot{\hat{\mathbf{p}}}) \propto \frac{\sigma^2}{\Delta t^6}.
-$$
+$$\operatorname{Var}(\dot{\hat{\mathbf{p}}}) \propto \frac{\sigma^2}{\Delta t^2},\qquad\operatorname{Var}(\ddot{\hat{\mathbf{p}}}) \propto \frac{\sigma^2}{\Delta t^4},\qquad\operatorname{Var}(\dddot{\hat{\mathbf{p}}})\propto\frac{\sigma^2}{\Delta t^6}.$$
 
 The project addresses this instability before torque prediction by combining anatomical and temporal regularization with a learned operator.
 
@@ -47,41 +36,23 @@ The project addresses this instability before torque prediction by combining ana
 
 The regularized pose objective is represented by
 
-$$
-\mathcal{L}_{\text{total}}
-= \mathcal{L}_{\text{MPJPE}}
-+ \lambda_1 \mathcal{L}_{\text{bone}}
-+ \lambda_2 \mathcal{L}_{\text{smooth}},
-$$
+$$\mathcal{L}_{\text{total}}= \mathcal{L}_{\text{MPJPE}}+ \lambda_1 \mathcal{L}_{\text{bone}}+ \lambda_2 \mathcal{L}_{\text{smooth}},$$
 
 where the bone term preserves calibrated segment lengths and the smoothness term penalizes unstable higher-order temporal derivatives. A representative bone penalty is
 
-$$
-\mathcal{L}_{\text{bone}}
-= \sum_{(i,j)\in\mathcal{B}}
-\left|\left\|\hat{\mathbf{p}}_i-\hat{\mathbf{p}}_j\right\|_2-L_{ij}\right|.
-$$
+$$\mathcal{L}_{\text{bone}}= \sum_{(i,j)\in\mathcal{B}}\left|\left\|\hat{\mathbf{p}}_i-\hat{\mathbf{p}}_j\right\|_2-L_{ij}\right|.$$
 
 The DeepONet then learns the functional mapping
 
-$$
-\mathcal{G}: u(t)=[\mathbf{q}(t),\dot{\mathbf{q}}(t),\ddot{\mathbf{q}}(t)]
-\longmapsto \boldsymbol{\tau}(t),
-$$
+$$\mathcal{G}: u(t)=[\mathbf{q}(t),\dot{\mathbf{q}}(t),\ddot{\mathbf{q}}(t)]\longmapsto \boldsymbol{\tau}(t),$$
 
 using a branch network for the sampled trajectory and a trunk network for the output query location:
 
-$$
-\mathcal{G}(u)(y)=\mathbf{b}(u)^\mathsf{T}\mathbf{t}(y)+b_0.
-$$
+$$\mathcal{G}(u)(y)=\mathbf{b}(u)^\mathsf{T}\mathbf{t}(y)+b_0.$$
 
 For deployment, the FP32 model is quantized to INT8. The primary numerical quantity is the torque drift
 
-$$
-\Delta\boldsymbol{\tau}
-=\left\|\boldsymbol{\tau}_{\mathrm{FP32}}
--\boldsymbol{\tau}_{\mathrm{INT8}}\right\|_2,
-$$
+$$\Delta\boldsymbol{\tau}=\left\|\boldsymbol{\tau}_{\mathrm{FP32}}-\boldsymbol{\tau}_{\mathrm{INT8}}\right\|_2,$$
 
 which is compared with the error produced by unconstrained derivative noise.
 
