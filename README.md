@@ -162,7 +162,3 @@ These numbers are environment-dependent and should be regenerated before being u
 - Contact-rich motion, multiple people, subject variation, and clinical use are outside the currently validated scope.
 
 Planned work includes quantization-aware training, comparisons with Fourier Neural Operators, independent motion-capture validation, and direct browser or edge-runtime evaluation.
-
-## License
-
-No license has been declared yet. Until one is added, assume that reuse and redistribution require permission from the author.
