@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.analytics.metrics import compute_mpjpe, compute_bone_length_variance, compute_sparc
+from src.analytics.expanded_metrics import compute_mpjpe, compute_bone_length_variance, compute_sparc
 from src.utils.derivatives import compute_kinematic_derivatives
 
 def run_pareto_sweep(processed_dir: str = "data/processed", output_json: str = "paper_results/pareto_sweep_data.json"):
