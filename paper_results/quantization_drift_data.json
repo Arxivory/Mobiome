@@ -1,0 +1,32 @@
+[
+    {
+        "velocity_scale": 0.5,
+        "analytical_bound": 6.458910837364001,
+        "empirical_drift": 18.270675659179688
+    },
+    {
+        "velocity_scale": 1.0,
+        "analytical_bound": 6.458910837364001,
+        "empirical_drift": 18.48236083984375
+    },
+    {
+        "velocity_scale": 1.5,
+        "analytical_bound": 6.458910837364001,
+        "empirical_drift": 21.694040298461914
+    },
+    {
+        "velocity_scale": 2.0,
+        "analytical_bound": 6.458910837364001,
+        "empirical_drift": 23.460329055786133
+    },
+    {
+        "velocity_scale": 2.5,
+        "analytical_bound": 6.458910837364001,
+        "empirical_drift": 23.315073013305664
+    },
+    {
+        "velocity_scale": 3.0,
+        "analytical_bound": 6.458910837364001,
+        "empirical_drift": 36.17916488647461
+    }
+]

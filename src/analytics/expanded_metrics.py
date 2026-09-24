@@ -27,7 +27,11 @@ def compute_sparc(movement: np.ndarray, fs: float = 60.0, padlevel: int = 4, fc:
     Ref: Balasubramanian et al., 2015.
     """
     if movement.ndim > 1:
-        movement = np.linalg.norm(movement, axis=-1)
+        movement = np.linalg.norm(movement.reshape(movement.shape[0], -1), axis=1)
+
+    movement = np.asarray(movement, dtype=float).reshape(-1)
+    if movement.size < 2:
+        return 0.0
     
     # Zero-pad signal
     n = len(movement)
@@ -41,6 +45,8 @@ def compute_sparc(movement: np.ndarray, fs: float = 60.0, padlevel: int = 4, fc:
     
     # Select frequency band [0, fc]
     fc_idx = np.where(freqs <= fc)[0]
+    if fc_idx.size < 2:
+        return 0.0
     f_sub = freqs[fc_idx]
     s_sub = spectrum[fc_idx]
     

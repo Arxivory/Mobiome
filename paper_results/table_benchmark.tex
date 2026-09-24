@@ -1,0 +1,13 @@
+
+\begin{table}[h]
+\centering
+\caption{Deployment Benchmark across Dynamics Solvers and Execution Engines.}
+\label{tab:deployment_benchmark}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Model / Engine} & \textbf{Precision} & \textbf{Latency (ms)} & \textbf{Throughput (FPS)} & \textbf{Memory (MB)} \\ \hline
+OpenSim RNEA Solver     & FP64               & 2.61 & 383.3 & 240.0 \\
+DeepONet (ONNX)         & FP32               & 1.18 & 847.9 & 48.2 \\
+DeepONet (ONNX)         & INT8 (PTQ)         & \textbf{1.37} & \textbf{731.5} & \textbf{12.1} \\ \hline
+\end{tabular}
+\end{table}
