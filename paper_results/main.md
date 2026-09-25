@@ -281,7 +281,9 @@ $L_{ij}$ for each connected bone $(i,j)\in\mathcal{B}$,
 $$\mathcal{L}_{\text{bone}} = \sum_{(i,j)\in\mathcal{B}} \big|\, \lVert \hat{\mathbf{p}}_i - \hat{\mathbf{p}}_j \rVert_2 - L_{ij} \,\big|,$$
 
 with analytical subgradient
-$\partial \mathcal{L}_{\text{bone}}/\partial \hat{\mathbf{p}}_i = \mathrm{sign}(d_{ij}-L_{ij})\cdot (\hat{\mathbf{p}}_i-\hat{\mathbf{p}}_j)/d_{ij}$,
+
+$$\partial \mathcal{L}_{\text{bone}}/\partial \hat{\mathbf{p}}_i = \mathrm{sign}(d_{ij}-L_{ij})\cdot (\hat{\mathbf{p}}_i-\hat{\mathbf{p}}_j)/d_{ij}$$,
+
 where $d_{ij}=\lVert \hat{\mathbf{p}}_i-\hat{\mathbf{p}}_j\rVert_2$.
 Finally, the higher-order temporal jerk term directly penalizes the
 third-order central finite difference,
@@ -331,9 +333,7 @@ al., 2023).
 To deploy the trained FP32 operator on edge hardware, we apply
 Post-Training Quantization, converting weights and activations to INT8
 using the uniform affine mapping of Section 3.4. Writing the quantized
-weight matrix as $\hat{\mathbf{W}} = \mathbf{W} + \mathbf{E}_{\mathbf{W}}$
-and the quantized activation as $\mathbf{x} + \mathbf{e}_{\mathbf{x}}$,
-a single linear layer $y=\mathbf{W}\mathbf{x}$ produces an output error
+weight matrix as $\hat{\mathbf{W}} = \mathbf{W} + \mathbf{E}_{\mathbf{W}}$ and the quantized activation as $\mathbf{x} + \mathbf{e}_{\mathbf{x}}$, a single linear layer $y=\mathbf{W}\mathbf{x}$ produces an output error
 
 $$\boldsymbol{\delta} = \hat{\mathbf{y}} - \mathbf{y} = \mathbf{W}\mathbf{e}_{\mathbf{x}} + \mathbf{E}_{\mathbf{W}}\mathbf{x} + \mathbf{E}_{\mathbf{W}}\mathbf{e}_{\mathbf{x}}.$$
 
