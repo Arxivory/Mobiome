@@ -282,7 +282,7 @@ $$\mathcal{L}_{\text{bone}} = \sum_{(i,j)\in\mathcal{B}} \big|\, \lVert \hat{\ma
 
 with analytical subgradient
 
-$$\partial \mathcal{L}_{\text{bone}}/\partial \hat{\mathbf{p}}_i = \mathrm{sign}(d_{ij}-L_{ij})\cdot (\hat{\mathbf{p}}_i-\hat{\mathbf{p}}_j)/d_{ij}$$,
+$$\partial \mathcal{L}_{\text{bone}} / \partial \hat{\mathbf{p}}_i = \mathrm{sign}(d_{ij}-L_{ij})\cdot (\hat{\mathbf{p}}_i-\hat{\mathbf{p}}_j) / d_{ij}$$,
 
 where $d_{ij}=\lVert \hat{\mathbf{p}}_i-\hat{\mathbf{p}}_j\rVert_2$.
 Finally, the higher-order temporal jerk term directly penalizes the
