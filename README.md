@@ -139,7 +139,7 @@ Generate the paper-oriented latency, torque-drift, and derivative-noise artifact
 python -m scripts.benchmark_paper_metrics
 ```
 
-The benchmark writes figures and a summary table to `paper_results/`. Existing checkpoint files allow inference and benchmark scripts to be run without retraining, provided their expected dependencies and paths are available.
+The main paper, benchmark figures and a summary table are at `paper_results/`. Existing checkpoint files allow inference and benchmark scripts to be run without retraining, provided their expected dependencies and paths are available.
 
 ## Preliminary Benchmark Artifact
 
