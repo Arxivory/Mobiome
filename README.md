@@ -145,11 +145,11 @@ The main paper, benchmark figures and a summary table are at `paper_results/`. E
 
 The checked-in benchmark summary currently reports the following recorded comparison:
 
-| Model               | Backend                          |   Latency | Throughput | Footprint |
-| ------------------- | -------------------------------- | --------: | ---------: | --------: |
-| OpenSim RNEA solver | CPU single core                  | 118.40 ms |    8.4 FPS |  240.0 MB |
-| DeepONet FP32       | ONNX CPU                         |  20.60 ms |   48.6 FPS |   48.2 MB |
-| DeepONet INT8 PTQ   | CPU / recorded deployment target |   1.68 ms |  593.8 FPS |   12.1 MB |
+| Model                 | Backend                              |     Latency |    Throughput |   Footprint |
+| --------------------- | ------------------------------------ | ----------: | ------------: | ----------: |
+| OpenSim RNEA solver   | CPU single core                      |   118.40 ms |       8.4 FPS |    240.0 MB |
+| DeepONet FP32         | ONNX CPU                             |    20.60 ms |      48.6 FPS |     48.2 MB |
+| **DeepONet INT8 PTQ** | **CPU / recorded deployment target** | **1.68 ms** | **593.8 FPS** | **12.1 MB** |
 
 These numbers are environment-dependent and should be regenerated before being used in a paper, report, or deployment decision. In particular, the current benchmark code measures CPU ONNX Runtime sessions even though the long-term target includes WebGPU.
 
