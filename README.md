@@ -133,6 +133,12 @@ Check that the exported FP32 ONNX model agrees with the PyTorch reference:
 python -m scripts.test_onnx_inference
 ```
 
+Run real-time camera inference paired with 3D biomechanical skeletal visualization:
+
+```powershell
+python -m scripts.run_realtime_int8_camera
+```
+
 Generate the paper-oriented latency, torque-drift, and derivative-noise artifacts:
 
 ```powershell
