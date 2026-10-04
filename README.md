@@ -163,6 +163,7 @@ These numbers are environment-dependent and should be regenerated before being u
 ## Limitations and Open Work
 
 - The end-to-end monocular video-to-torque workflow is still being integrated and validated.
+- The neural network still needs more training for more better accuracy.
 - Synthetic and processed data do not replace validation against independent experimental measurements.
 - The analytical quantization bound requires broader validation across architectures, calibration data, and hardware.
 - Browser/WebGPU latency and numerical behavior still need dedicated measurement.
