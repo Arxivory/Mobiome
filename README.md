@@ -140,6 +140,12 @@ Run real-time camera inference paired with 3D biomechanical skeletal visualizati
 python -m scripts.run_realtime_int8_camera
 ```
 
+Run a side-by-side interactive video and 3D biomechanical skeletal visualization using the quantized INT8 ONNX:
+
+```powershell
+python -m scripts.run_video_int8_twin your_video.mp4
+```
+
 Generate the paper-oriented latency, torque-drift, and derivative-noise artifacts:
 
 ```powershell
