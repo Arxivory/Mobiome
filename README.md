@@ -76,6 +76,7 @@ Implemented research components include:
 - PyTorch PTQ and QAT helpers, plus ONNX model artifacts.
 - A benchmark covering low, medium, and high synthetic movement-velocity regimes.
 - Real-time camera inference preview accompanied with 3D twin visualization.
+- Processed Video + 3D Twin Visualization.
 - Main paper, plots and a benchmark summary are in `paper_results/`.
 
 The current benchmark uses ONNX Runtime's CPU execution provider. WebGPU and browser execution are intended deployment targets and remain part of the ongoing research and validation work. The included benchmark artifacts should therefore be treated as preliminary project results, not as a completed clinical or scientific validation.
