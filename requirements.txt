@@ -1,5 +1,5 @@
-torch>=2.3.0
-torchvision>=0.18.0
+torch
+torchvision
 numpy
 scipy
 h5py
@@ -7,8 +7,8 @@ opensim
 opencv-python
 mediapipe
 pyvista
-onnx==1.18.0
+onnx
 onnxscript
 onnxruntime
-protobuf>=4.25.3,<5
+protobuf
 seaborn
