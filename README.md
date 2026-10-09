@@ -67,7 +67,7 @@ which is compared with the error produced by unconstrained derivative noise.
 
 ## Current Scope
 
-Implemented research components include:
+Implemented research and technical components include:
 
 - PyTorch DeepONet branch, trunk, and operator modules.
 - Biomechanical derivative and anatomical loss components.
