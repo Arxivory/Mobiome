@@ -64,6 +64,7 @@ which is compared with the error produced by unconstrained derivative noise.
 - Compare quantization drift with physically meaningful torque errors.
 - Evaluate the feasibility of browser and edge deployment.
 - Build toward validation against independent motion-capture and biomechanical measurements.
+- Integrate into edge systems
 
 ## Current Scope
 
