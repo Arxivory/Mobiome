@@ -62,9 +62,8 @@ which is compared with the error produced by unconstrained derivative noise.
 - Learn a fast surrogate for classical biomechanical inverse dynamics.
 - Measure the accuracy, latency, and memory trade-offs of low-precision inference.
 - Compare quantization drift with physically meaningful torque errors.
-- Evaluate the feasibility of browser and edge deployment.
+- Evaluate the feasibility of browser and edge deployment with basic cameras.
 - Build toward validation against independent motion-capture and biomechanical measurements.
-- Integrate into edge systems
 
 ## Current Scope
 
